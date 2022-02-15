@@ -1,0 +1,1 @@
+export const GREY = 'rgb(69, 69, 74)'
