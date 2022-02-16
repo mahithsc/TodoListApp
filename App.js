@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, TextInput, TouchableWithoutFeedback, Keyboard, FlatList, TouchableOpacity, TextPropTypes } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput, TouchableWithoutFeedback, Keyboard, FlatList, TouchableOpacity, TextPropTypes, SafeAreaView } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { CheckBox, FAB, Overlay } from 'react-native-elements';
 import React, { useEffect, useState } from 'react';
@@ -8,17 +8,11 @@ import { GREY, DARK_BLACK, LIGHT_BLACK, ORANGE } from './assets/constants';
 import { db } from './Firebase';
 import { collection, doc, setDoc, addDoc, getDocs, onSnapshot, getDoc, query } from 'firebase/firestore'
 
-const ListView = ({ props }) => {
+const RenderItem = ({ item }) => {
   return (
-    <FlatList
-      data={props}
-      keyExtractor={props.key}
-      renderItem={() => (
-        <View style={{ alignItems: 'stretch', flexDirection: 'row' }}>
-          <CheckBox />
-        </View>
-      )}
-    />
+    <View style={{height: 75, backgroundColor: '#2C343A', marginBottom: 10, borderRadius: 20, alignSelf: 'stretch', marginHorizontal: 20, justifyContent: 'center' }}>
+      <Text style = {{color: 'white'}}>{item.title}</Text>
+    </View>
   )
 }
 
@@ -29,6 +23,16 @@ export default function App() {
   const [visible, changeVisible] = useState(false)
   const [activity, changeActivity] = useState("")
   const [data, changeData] = useState([]);
+
+  //toggles lottie view when data is added
+  useEffect(() => {
+    if (data.length === 0) {
+      changeLottieVisible(true)
+    }
+    else {
+      changeLottieVisible(false)
+    }
+  }, [data])
 
   //writes to firestore database
   const writing = async () => {
@@ -69,7 +73,9 @@ export default function App() {
   }
 
   return (
+
     <View style={styles.container}>
+      <SafeAreaView></SafeAreaView>
       <StatusBar style="auto" />
       {
         lottieVisible ? <LottieView
@@ -79,7 +85,18 @@ export default function App() {
           style={{
             width: '100%'
           }}
-        /> : null
+        /> : <FlatList
+        style = {{
+          alignSelf: 'stretch'
+        }}
+          data={data}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => (
+            <RenderItem
+              item={item}
+            />
+          )}
+        />
       }
       <FAB
         onPress={toggle}
