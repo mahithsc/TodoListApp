@@ -1,23 +1,28 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button, TextInput, TouchableWithoutFeedback, Keyboard, FlatList, TouchableOpacity, TextPropTypes, SafeAreaView } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { CheckBox, FAB, Overlay } from 'react-native-elements';
+import { FAB, Overlay } from 'react-native-elements';
 import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import { GREY, DARK_BLACK, LIGHT_BLACK, ORANGE } from './assets/constants';
 import { db } from './Firebase';
 import { collection, doc, setDoc, addDoc, getDocs, onSnapshot, getDoc, query } from 'firebase/firestore'
+import { Checkbox } from 'react-native-paper';
 
 const RenderItem = ({ item }) => {
+  const [checked, setChecked] = React.useState(false);
+
   return (
-    <View style={{height: 75, backgroundColor: '#2C343A', marginBottom: 10, borderRadius: 20, alignSelf: 'stretch', marginHorizontal: 20, justifyContent: 'center' }}>
-      <Text style = {{color: 'white'}}>{item.title}</Text>
+    <View style={{ height: 75, backgroundColor: '#2C343A', marginBottom: 15, borderRadius: 15, alignSelf: 'stretch', marginHorizontal: 20, alignItems: 'center', flexDirection: 'row' }}>
+      <Checkbox.Android 
+        status= {item.bool}
+      />
+      <Text style={{ color: 'white' }}>{item.title}</Text>
     </View>
   )
 }
 
 export default function App() {
-
   //use state hook
   const [lottieVisible, changeLottieVisible] = useState(true)
   const [visible, changeVisible] = useState(false)
@@ -34,34 +39,51 @@ export default function App() {
     }
   }, [data])
 
+  useEffect(() => {
+    read()
+  }, [])
+
+
+  //this is the function which reads all the values upon starting the app
+  const read = async () => {
+    const something = []
+    try {
+      const querySnapshot = await getDocs(collection(db, "trial"));
+      querySnapshot.forEach((doc) => {
+        // changeData((oldData) => [
+        //   ...oldData,
+        //   {
+        //   'title': doc.data().title,
+        //   'bool': doc.data().bool,
+        //   'id': doc.id
+        // }])
+        something.push(
+          {
+            'title': doc.data().title,
+            'bool': doc.data().bool,
+            'id': doc.id
+          }
+        )
+      })
+      changeData(something);
+      changeActivity("")
+      // const docSNap = await getDoc(doc(db, 'trial', ))
+    } catch (err) {
+      console.log(err.message)
+    }
+  }
+
   //writes to firestore database
   const writing = async () => {
     try {
       if (activity !== '') {
         await addDoc(collection(db, 'trial'), {
           title: activity,
-          bool: false
+          bool: 'unchecked'
         }, { merge: true })
         changeVisible(!visible)
-        changeActivity("");
+        // changeActivity("");
       }
-    } catch (err) {
-      console.log(err.message)
-    }
-  }
-
-  //reads and appends to the data state array
-  const read = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "trial"));
-      querySnapshot.forEach((doc) => {
-        changeData((oldData) => [...oldData, {
-          'title': doc.data().title,
-          'bool': doc.data().bool,
-          'id': doc.id
-        }])
-      })
-      // const docSNap = await getDoc(doc(db, 'trial', ))
     } catch (err) {
       console.log(err.message)
     }
@@ -86,9 +108,9 @@ export default function App() {
             width: '100%'
           }}
         /> : <FlatList
-        style = {{
-          alignSelf: 'stretch'
-        }}
+          style={{
+            alignSelf: 'stretch'
+          }}
           data={data}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (
