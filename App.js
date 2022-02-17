@@ -6,16 +6,26 @@ import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import { GREY, DARK_BLACK, LIGHT_BLACK, ORANGE } from './assets/constants';
 import { db } from './Firebase';
-import { collection, doc, setDoc, addDoc, getDocs, onSnapshot, getDoc, query } from 'firebase/firestore'
+import { collection, doc, setDoc, addDoc, getDocs, onSnapshot, getDoc, query, updateDoc } from 'firebase/firestore'
 import { Checkbox } from 'react-native-paper';
+import { async } from '@firebase/util';
 
 const RenderItem = ({ item }) => {
-  const [checked, setChecked] = React.useState(false);
+  const [checked, setChecked] = React.useState('unchecked');
 
   return (
     <View style={{ height: 75, backgroundColor: '#2C343A', marginBottom: 15, borderRadius: 15, alignSelf: 'stretch', marginHorizontal: 20, alignItems: 'center', flexDirection: 'row' }}>
       <Checkbox.Android 
-        status= {item.bool}
+        status= {checked}
+        onPress = {() => {
+          if(checked === 'checked'){
+            setChecked('unchecked')
+          }
+          else{
+            setChecked('checked')
+          }
+        }}
+        color = {ORANGE}
       />
       <Text style={{ color: 'white' }}>{item.title}</Text>
     </View>
