@@ -8,6 +8,7 @@ import { GREY, DARK_BLACK, LIGHT_BLACK, ORANGE } from '../assets/constants';
 import { db } from '../Firebase';
 import { collection, addDoc, getDocs } from 'firebase/firestore'
 import RenderItem from './components/FlatListItem'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function TodoList() {
@@ -16,9 +17,21 @@ export default function TodoList() {
   const [visible, changeVisible] = useState(false)
   const [activity, changeActivity] = useState("")
   const [data, changeData] = useState([]);
+  const [username, changeUsername] = useState("")
+
+  useEffect(() => {
+    console.log("1st here")
+    getUsername();
+  }, [])
+
+  useEffect(() => {
+    console.log("2nd here")
+    read(username);
+  }, [username])
 
   //toggles lottie view when data is added
   useEffect(() => {
+    console.log("3rd here")
     if (data.length === 0) {
       changeLottieVisible(true)
     }
@@ -27,17 +40,18 @@ export default function TodoList() {
     }
   }, [data])
 
-  
-  useEffect(() => {
-    read()
-  }, [])
-
+  //using async storage to retrieve the username
+  const getUsername = async () => {
+    const tempUsername = await AsyncStorage.getItem('@username')
+    console.log(tempUsername)
+    changeUsername(tempUsername)
+  }
 
   //this is the function which reads all the values upon starting the app
-  const read = async () => {
+  const read = async (prop) => {
     const something = []
     try {
-      const querySnapshot = await getDocs(collection(db, "trial"));
+      const querySnapshot = await getDocs(collection(db, prop));
       querySnapshot.forEach((doc) => {
         something.push(
           {
@@ -56,10 +70,10 @@ export default function TodoList() {
   }
 
   //writes to firestore database
-  const writing = async () => {
+  const writing = async (prop) => {
     try {
       if (activity !== '') {
-        await addDoc(collection(db, 'trial'), {
+        await addDoc(collection(db, prop), {
           title: activity,
           bool: 'unchecked'
         }, { merge: true }) 
@@ -139,8 +153,8 @@ export default function TodoList() {
         <TouchableOpacity
           style={{ alignSelf: 'center', backgroundColor: ORANGE, borderRadius: 10, padding: 10, marginTop: 20 }}
           onPress={() => {
-            writing()
-            read()
+            writing(username)
+            read(username)
           }}
         >
           <Text style={{ color: DARK_BLACK, fontWeight: 'bold' }}>Something</Text>
